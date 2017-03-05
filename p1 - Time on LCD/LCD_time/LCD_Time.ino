@@ -6,10 +6,10 @@
 
 
 /*******************************************************
-This program is used with a DFRobot LCD keypad shield. It implements a simple UI for setting values to
-the variable freq and duty through the buttons of the shield.
+  This program is used with a DFRobot LCD keypad shield. It implements a simple UI for setting values to
+  the variable freq and duty through the buttons of the shield.
 
-Code written by Maxime Boudreau (February 2017) using the example code from Mark Bramwell (July 2010)
+  Code written by Maxime Boudreau (February 2017) using the example code from Mark Bramwell (July 2010)
 
 ********************************************************/
 
@@ -20,7 +20,7 @@ double duty = 50;// 50%
 int lcd_key     = 0;
 int adc_key_in  = 0;
 
-int modeLev1 = 0; //Time mode 
+int modeLev1 = 0; //Time mode
 int secondOfLastUpdate = 0;
 
 
@@ -47,25 +47,34 @@ int displayMode = 0;
 #define mFreq     0
 #define mDuty     1
 
-int Lev1Val = 2;
+int lev1Val = 2;
+int lev2Val = -1;
 
-#define Msg1[0] = "Return";
-#define Msg1[1] = "Parameters"; 
-#define Msg1[2] = "Time"; 
-#define Msg1[3] = "Led Mode"; 
+String MenuMsg1[] = {
+  "Return",
+  "Time",
+  "Led Mode",
+  "Parameters",
+};
 
-#define Msg2[1][0] = "Return";
-#define Msg2[1][1] = "Set time";
-#define Msg2[1][2] = "Set date";
-
-#define Msg2[2][0] = "Return";
-#define Msg2[2][1] = "Set time";
+//Msg1[0][] = "Return";
+//Msg1[1][] = "Parameters";
+//#define Msg1[2] = "Time";
+//#define Msg1[3] = "Led Mode";
+//
+//#define Msg2[1][0] = "Return";
+//#define Msg2[1][1] = "Set time";
+//#define Msg2[1][2] = "Set date";
+//
+//#define Msg2[2][0] = "Return";
+//#define Msg2[2][1] = "Set time";
 
 
 
 
 void setup()
 {
+
   // Set the time
   setTime(0, 0, 0, 0, 0, 0);
 
@@ -86,7 +95,7 @@ void loop()
   lcd_key = readLCDcontroller();  // read the buttons
   respondToButtonInput(); //Do what the button is supposed to do
 
-  
+
 }
 
 
@@ -111,28 +120,28 @@ void respondToButtonInput() //Respond to current lcd_key and initiate correspond
   {
     case btnRIGHT:
       {
-        
+
         updateLCD(1);
         delay(buttonDelay * 2);
         break;
       }
     case btnLEFT:
       {
-       
+
         updateLCD(1);
         delay(buttonDelay * 2);
         break;
       }
     case btnUP:
       {
-       
+        updateLevVal();
         updateLCD(1);
         delay(buttonDelay);
         break;
       }
     case btnDOWN:
       {
-        
+
         updateLCD(1);
         delay(buttonDelay);
         break;
@@ -156,20 +165,20 @@ void respondToButtonInput() //Respond to current lcd_key and initiate correspond
       }
     case btnNONE:
       {
-        
-       // updateLCD();
 
-       //Nothing is going on. If LCD shows the time, must update it every seconds. 
-       if (modeLev1 ==0){
-        
-        time_t t = now(); 
-        int currentSecond = second(t);
-        if (currentSecond != secondOfLastUpdate){
-          updateLCD(0);
-          secondOfLastUpdate = currentSecond;
+        // updateLCD();
+
+        //Nothing is going on. If LCD shows the time, must update it every seconds.
+        if (modeLev1 == 0) {
+
+          time_t t = now();
+          int currentSecond = second(t);
+          if (currentSecond != secondOfLastUpdate) {
+            updateLCD(0);
+            secondOfLastUpdate = currentSecond;
+          }
+
         }
-        
-       }
         break;
       }
   }
@@ -187,54 +196,77 @@ String formatTime( time_t t) //To make a string LCD friendly from the time
   String sM;
   String sS;
 
-  if (H<10) {
-    sH = "0"+String(H);  
+  if (H < 10) {
+    sH = "0" + String(H);
   }
   else {
     sH = String(H);
   }
-  if (M<10) {
-    sM = "0"+String(M);  
+  if (M < 10) {
+    sM = "0" + String(M);
   }
   else {
     sM = String(M);
   }
-  if (S<10) {
-    sS = "0"+String(S);  
+  if (S < 10) {
+    sS = "0" + String(S);
   }
   else {
     sS = String(S);
   }
 
-  return sH + ":" + sM + ":" + sS; 
+  return sH + ":" + sM + ":" + sS;
 }
 void updateLCD(int doClear)
 {
-  if (doClear ==1 ) {
-  lcd.clear();
+  if (doClear == 1 ) {
+    lcd.clear();
   }
   // level1
-  switch (1) {
-    case 1:  {
+  switch (lev1Val) {
+    case 1:  {// Return mode
         //Display mode
         time_t t = now();
         String timeString = formatTime(t);
         lcd.setCursor(0, 0); //First row
-        lcd.print("Time");
+        lcd.print("Up or down to change menu");
+        lcd.setCursor(0, 1);
+        lcd.print("Time is : " + timeString);
+
+        break;
+      }
+    case 2:  {// Time mode
+        //Display mode
+        time_t t = now();
+        String timeString = formatTime(t);
+        lcd.setCursor(0, 0); //First row
+        lcd.print(MenuMsg1[lev1Val]);
         lcd.setCursor(0, 1);
         lcd.print(timeString);
 
         break;
       }
-    case 2:
-      break;
-    case 3:
+    case 3: {// Change time
+        switch (lev2Val) {
+          case -1: {
+              lcd.setCursor(0, 0); //First row
+              lcd.print("Time change:")
+              break;
+            }
+
+        }
+
+        break;
+      }
+    case 4:
       break;
   }
 }
 
 
-
+void updateLevVal(){
+  si
+}
 
 
 
